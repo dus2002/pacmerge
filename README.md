@@ -1,5 +1,5 @@
-blackman tool
--------------
+blackman tool MOD
+-----------------
     Small package manager which download, compile -if needed- and install packages from sources.
 
     This tool has several goals in mind:
@@ -109,3 +109,8 @@ SORT TOOLS EXAMPLE
     [+] pdf-parser
         Parses a PDF document to identify the fundamental elements used in the analyzed file.
     ...
+    
+Usage MODS
+----------
+    This version is patched to work with almost every distro that features pacman. Just is more insecure, because skips
+    integritychecks of sources, and installs directly from makepkg
