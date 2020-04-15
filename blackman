@@ -357,18 +357,15 @@ install_pkg()
             if [[ "$(id -u)" -eq 0 ]]; then
                 cri "blackman must not be run as root"
             else
-                makepkg -sf --noconfirm
+                makepkg -sfi --noconfirm --skipchecksums --skipinteg --skippgpcheck
             fi
         else
             if [[ "$(id -u)" -ne 0 ]]; then
-                makepkg -sf --noconfirm
+                makepkg -sfi --noconfirm --skipchecksums --skipinteg --skippgpcheck
             else
-                makepkg -sf --asroot --noconfirm
+                makepkg -sfi --asroot --noconfirm --skipchecksums --skipinteg --skippgpcheck
             fi
         fi
-
-        [ "${?}" != "0" ] && warn "Something wrong with makepkg: %b" "${pkg}"
-        sudo pacman -U *.xz ${pacman_extra}
 
         # cleaning up
 	    rm -rf "${TMP_DIR_INSTALL:?}/${pkg}"
@@ -645,4 +642,3 @@ main()
 
 # program start
 main "${@}"
-
