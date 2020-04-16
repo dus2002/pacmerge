@@ -1,39 +1,34 @@
 #!/bin/bash
 ################################################################################
-#                ____                     _ __                                 #
-#     ___  __ __/ / /__ ___ ______ ______(_) /___ __                           #
-#    / _ \/ // / / (_-</ -_) __/ // / __/ / __/ // /                           #
-#   /_//_/\_,_/_/_/___/\__/\__/\_,_/_/ /_/\__/\_, /                            #
-#                                            /___/ team                        #
 #                                                                              #
-# blackman - Emerge for Blackarch                                              #
+# Pac(E)merge - Emerge for Pacman                                              #
 #                                                                              #
 # FILE                                                                         #
-# blackman.sh                                                                  #
-#                                                                              #
-# DATE                                                                         #
-# 2013-12-20                                                                   #
+# pacmerge.sh                                                                  #
+#                                                                              #                                                            #
 #                                                                              #
 # DESCRIPTION                                                                  #
 # Download and compile packages as Emerge does                                 #
 #                                                                              #
 # AUTHOR                                                                       #
+# DUS2002                                                                      #
+# Based on the work of:                                                        #
 # nrz@nullsecurity.net                                                         #
 # noptrix@nullsecurity.net                                                     #
 #                                                                              #
 ################################################################################
 
-# blackman version
-VERSION="blackman v0.5.13"
+# pacmerge version
+VERSION="pacmerge v0.5.13"
 
-# url blackarch repository
-REMOTE_REPO="https://github.com/BlackArch/blackarch.git"
+# url pacmerge repository
+REMOTE_REPO="https://git.archlinux.org/svntogit/packages.git"
 
-# local base directory for blackman
-LOCAL_BLACKMAN="${HOME}/.blackman"
+# local base directory for pacmerge
+LOCAL_pacmerge="${HOME}/.pacmerge"
 
-# copy of the blackarch repository
-LOCAL_REPO="${LOCAL_BLACKMAN}/blackarch"
+# copy of the pacmerge repository
+LOCAL_REPO="${LOCAL_pacmerge}/pacmerge"
 
 # meta directory for metadata files
 META="${LOCAL_REPO}/meta"
@@ -44,8 +39,8 @@ WORLD="${LOCAL_REPO}/meta/world"
 # groups file
 GROUPS_FILE="${LOCAL_REPO}/lists/groups"
 
-# blackarch packages location
-REPO_PKGS="${LOCAL_REPO}/packages"
+# pacmerge packages location
+REPO_PKGS="${LOCAL_REPO}/tree"
 
 # error log
 ERROR_LOG="${LOCAL_REPO}/meta/errors"
@@ -54,7 +49,7 @@ ERROR_LOG="${LOCAL_REPO}/meta/errors"
 TMP_DIR_INSTALL="/tmp"
 
 # directory for sort tools
-SORT_TOOLS_DIR="${LOCAL_BLACKMAN}/haxx"
+SORT_TOOLS_DIR="${LOCAL_pacmerge}/haxx"
 
 # return codes
 SUCCESS="0"
@@ -134,14 +129,14 @@ OPTIONS:
     PACKAGES:
     -s <pkg>: search package
     -i <pkg>: download, compile and install package
-    -g <group>: install all packages inside a blackarch group
+    -g <group>: install all packages inside a pacmerge group
     -a: install all packages from all groups
 
     REPOSITORY:
-    -l: list blackarch groups
-    -n: list native installed blackarch packages
+    -l: list pacmerge groups
+    -n: list native installed pacmerge packages
     -p <group>: list packages from group
-    -u: update blackarch repository
+    -u: update pacmerge repository
     -m: upgrade installed packages (-f to reinstall all)
 
     SORT TOOLS:
@@ -153,7 +148,7 @@ OPTIONS:
 
     MISC:
     -v: verbose
-    -V: blackman version
+    -V: pacmerge version
     -H: this
 
 EOF
@@ -164,7 +159,7 @@ EOF
 # leet banner, very important
 banner()
 {
-    printf "%b--==[ blackman - BlackArch ]==--%b\n" "${YELLOW}" "${NC}"
+    printf "%b--==[ pacmerge - pacmerge ]==--%b\n" "${YELLOW}" "${NC}"
 
     return "${SUCCESS}"
 }
@@ -210,7 +205,7 @@ check_env()
     fi
 
     command -v strip >/dev/null 2>&1 ||
-        err "Blackman needs binutils to work" ||
+        err "pacmerge needs binutils to work" ||
         if ask_pkg_install "binutils"; then
             if [ "$(id -u)" != "0" ]; then
                 sudo pacman -S binutils --noconfirm
@@ -220,7 +215,7 @@ check_env()
         fi
 
     command -v make >/dev/null 2>&1 ||
-        err "Blackman needs base-devel to work" ||
+        err "pacmerge needs base-devel to work" ||
         if ask_pkg_install "base-devel"; then
             if [ "$(id -u)" != "0" ]; then
                 sudo pacman -S base-devel --noconfirm
@@ -230,7 +225,7 @@ check_env()
         fi
 
     command -v svn >/dev/null 2>&1 ||
-        err "Blackman needs Subversion to work" ||
+        err "pacmerge needs Subversion to work" ||
         if ask_pkg_install "subversion"; then
             if [ "$(id -u)" != "0" ]; then
                 sudo pacman -S subversion --noconfirm
@@ -240,7 +235,7 @@ check_env()
         fi
 
     command -v git >/dev/null 2>&1 ||
-        err "Blackman needs git to work" ||
+        err "pacmerge needs git to work" ||
         if ask_pkg_install "git"; then
             if [ "$(id -u)" != "0" ]; then
                 sudo pacman -S git --noconfirm
@@ -252,12 +247,12 @@ check_env()
     return "${SUCCESS}"
 }
 
-# check if its first time for blackman and set everything up
+# check if its first time for pacmerge and set everything up
 check_init()
 {
-    # check blackarch repository
+    # check pacmerge repository
     if ! [ -d "${LOCAL_REPO}" ]; then
-        printf "[+] First Blackman Init - Setting up... \n\n"
+        printf "[+] First pacmerge Init - Setting up... \n\n"
         check_env
         git clone "${REMOTE_REPO}" "${LOCAL_REPO}"
     fi
@@ -342,12 +337,12 @@ install_pkg()
 	    cp -R "${REPO_PKGS}/${pkg}" "${TMP_DIR_INSTALL}"
 	    cd "${TMP_DIR_INSTALL}/${pkg}"
 
-        # check and resolve dependencies with blackarch packages
+        # check and resolve dependencies with pacmerge packages
         if grep -q "^depends=" PKGBUILD; then
             grep "^depends=" PKGBUILD | sed "s/depends=(//;s/)//;s/'//g;s/ /\n/g"|
                 while read -r; do
                     if [ -d "${REPO_PKGS}/${REPLY}" ]; then
-                        wprintf "[+] BlackArch dependencies detected - Installing..."
+                        wprintf "[+] pacmerge dependencies detected - Installing..."
                         install_pkg "${REPLY}" "--noconfirm --needed"
                     fi
                 done
@@ -355,7 +350,7 @@ install_pkg()
 
         if compare_version ${pacman_version} "4.2"; then
             if [[ "$(id -u)" -eq 0 ]]; then
-                cri "blackman must not be run as root"
+                cri "pacmerge must not be run as root"
             else
                 makepkg -sfi --noconfirm --skipchecksums --skipinteg --skippgpcheck
             fi
@@ -383,8 +378,8 @@ install_group()
     # TODO: get count of packages - ask if install all
     group=$1
 
-    # fix blackarch- prefix
-    ! printf "%b" "${group}" | grep -q "blackarch" && group="blackarch-${group}"
+    # fix pacmerge- prefix
+    ! printf "%b" "${group}" | grep -q "pacmerge" && group="pacmerge-${group}"
 
     wprintf "[+] Installing %b group" "${group}"
 
@@ -404,7 +399,7 @@ install_group()
 
 install_all()
 {
-    install_group "blackarch"
+    install_group "pacmerge"
 
     return "${SUCCESS}"
 }
@@ -420,7 +415,7 @@ list_groups()
 
 list_native()
 {
-    ls ${SORT_TOOLS_DIR}/blackarch |
+    ls ${SORT_TOOLS_DIR}/pacmerge |
     while read -r tool ; do
     	wprintf "[+] %b" "${tool}"
     	grep "${tool}" -rl "${REPO_PKGS}" |grep PKGBUILD | ( while read -r; do
@@ -435,7 +430,7 @@ list_native()
 
 upgrade_packages()
 {
-    for tool in $(ls ${SORT_TOOLS_DIR}/blackarch); do
+    for tool in $(ls ${SORT_TOOLS_DIR}/pacmerge); do
 	install_pkg ${tool};
     done
     return "${SUCCESS}"
@@ -446,9 +441,9 @@ list_pkgs_from_group()
     group=$1
     found="false"
 
-    # fix blackarch- prefix
-    if [ "${group}" != "blackarch" ]; then
-        ! printf "%b" "${group}" | grep -q "blackarch-" && group="blackarch-${group}"
+    # fix pacmerge- prefix
+    if [ "${group}" != "pacmerge" ]; then
+        ! printf "%b" "${group}" | grep -q "pacmerge-" && group="pacmerge-${group}"
     fi
 
     if grep -q "${group}" "${GROUPS_FILE}"; then
@@ -497,7 +492,7 @@ sort_tools()
         mkdir -p "${SORT_TOOLS_DIR}"
 
 
-    pacman -Qgg | grep blackarch |
+    pacman -Qgg | grep pacmerge |
     while read -r group tool ; do
         mkdir -p "${SORT_TOOLS_DIR}/${group##*-}"
         if ! [ -h "${SORT_TOOLS_DIR}/${group##*-}/${tool}" ]; then
@@ -508,7 +503,7 @@ sort_tools()
     # remove uninstalled tools
     wprintf "[+] Removing uninstalled tools"
     removed="false"
-    for tool in $(pacman -Qqn `ls ${SORT_TOOLS_DIR}/blackarch/` 3>&1 1>/dev/null 2>&3- | cut -d' ' -f3 | tr -d \') ; do
+    for tool in $(pacman -Qqn `ls ${SORT_TOOLS_DIR}/pacmerge/` 3>&1 1>/dev/null 2>&3- | cut -d' ' -f3 | tr -d \') ; do
 	wprintf "[+] ${tool}:" && find -P "${SORT_TOOLS_DIR}" -name "${tool}" -execdir echo -en "\t" ';' -print -delete;
 	# remove tool from world folder
 	sed -i "/"${tool}"/d" ${WORLD};
