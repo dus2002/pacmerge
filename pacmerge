@@ -159,7 +159,7 @@ EOF
 # leet banner, very important
 banner()
 {
-    printf "%b--==[ pacmerge - pacmerge ]==--%b\n" "${YELLOW}" "${NC}"
+    printf "%b--==[ PacMerge - ArchLinux ]==--%b\n" "${YELLOW}" "${NC}"
 
     return "${SUCCESS}"
 }
