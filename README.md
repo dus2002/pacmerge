@@ -4,12 +4,11 @@ Pacmerge
 
     This tool has several goals in mind:
         1. It does not depend on repository.
-        2. Be always up to date, since packages builds from the very last PKGBUILD in master ArchBuildSystem (for now. Goal is
-        allow to use more than one repository branch).
+        2. Be always up to date, since packages builds from the very last PKGBUILD in master ArchBuildSystem (for now. Goal is allow to use more than one server at once).
         3. Download from tool source.
         4. Compile the package.
 
-Usage: blackman
+Usage: pacmerge
 ---------------
 
 OPTIONS:
